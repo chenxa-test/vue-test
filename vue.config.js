@@ -1,7 +1,9 @@
 'use strict'
 const path = require('path')
 // const defaultSettings = require('./src/settings.js')
-const webpack = require('webpack')
+const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const VueLoaderPlugin = require('vue-loader/lib/plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 function resolve (dir) {
   return path.join(__dirname, dir)
@@ -25,8 +27,8 @@ module.exports = {
    * In most cases please use '/' !!!
    * Detail: https://cli.vuejs.org/config/#publicpath
    */
-  publicPath: '/vueTest',
-  outputDir: 'dist',
+  publicPath: '/vueTest', // 基本路径
+  outputDir: 'dist', // 输出文件目录
   assetsDir: 'static',
   lintOnSave: process.env.NODE_ENV === 'development',
   productionSourceMap: false,
@@ -42,15 +44,45 @@ module.exports = {
     // provide the app's title in webpack's name field, so that
     // it can be accessed in index.html to inject the correct title.
     name: name,
+    entry: './src/app.js',
+    output: {
+      path: path.resolve(__dirname, 'dist'),
+      filename: 'bundle.js'
+    },
     resolve: {
       alias: {
         '@': resolve('src')
       }
     },
-    plugins: [
-      new webpack.ProvidePlugin({
-        _: 'lodash'
-      })
+    rules: [
+      {
+        test: /\.js$/,
+        use: 'babel-loader'
+      },
+      {
+        test: /\.css$/,
+        use: ['vue-style-loader', 'css-loader', 'postcss-loader']
+        // use: ExtractTextPlugin.extract({
+        //   fallback: 'vue-style-loader',
+        //   use: [
+        //     'css-loader',
+        //     'postcss-loader'
+        //   ]
+        // })
+      },
+      {
+        test: /\.(jpg|jpeg|png|gif|svg)$/,
+        use: {
+          loader: 'url-loader',
+          options: {
+            limit: 10000 // 10Kb
+          }
+        }
+      },
+      {
+        test: /\.vue$/,
+        use: 'vue-loader'
+      }
     ]
   },
   chainWebpack (config) {
@@ -129,5 +161,12 @@ module.exports = {
           config.optimization.runtimeChunk('single')
         }
       )
-  }
+  },
+  plugins: [
+    new VueLoaderPlugin(),
+    new HtmlWebpackPlugin({
+      template: './index.html'
+    }),
+    new ExtractTextPlugin('styles.css')
+  ]
 }

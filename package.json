@@ -6,17 +6,26 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "build:client": "webpack --config config/webpack.client.config.js",
+    "build:server": "webpack --config config/webpack.server.config.js",
+    "dev": "webpack-dev-server",
+    "start": "node server/server.js"
   },
   "dependencies": {
+    "axios": "^0.19.2",
     "core-js": "^3.6.4",
+    "element-ui": "^2.13.0",
+    "express": "^4.17.1",
+    "koa": "^2.11.0",
+    "koa-router": "^8.0.8",
+    "koa-static": "^5.0.0",
+    "lodash": "^4.17.15",
     "vue": "^2.6.11",
     "vue-router": "^3.1.5",
+    "vue-server-renderer": "^2.6.11",
     "vuex": "^3.1.2",
-    "element-ui": "^2.13.0",
-    "xlsx": "^0.15.6",
-    "axios": "^0.19.2",
-    "lodash": "^4.17.15"
+    "xlsx": "^0.15.6"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.2.0",
@@ -36,7 +45,23 @@
     "eslint-plugin-vue": "^6.1.2",
     "less": "^3.0.4",
     "less-loader": "^5.0.0",
+    "script-ext-html-webpack-plugin": "^2.1.4",
     "vue-template-compiler": "^2.6.11",
-    "script-ext-html-webpack-plugin": "^2.1.4"
+    "webpack-cli": "^3.3.11",
+    "webpack": "^4.42.1",
+    "webpack-dev-server": "^3.10.3",
+    "html-webpack-plugin": "^4.0.4",
+    "vue-loader": "^15.9.1",
+    "babel-loader": "^8.1.0",
+    "css-loader": "^3.4.2",
+    "url-loader": "^4.0.0",
+    "file-loader": "^6.0.0",
+    "postcss-loader": "^3.0.0",
+    "postcss": "^7.0.27",
+    "vue-style-loader": "^4.1.2",
+    "extract-text-webpack-plugin": "^3.0.2",
+    "autoprefixer": "^9.7.5",
+    "webpack-merge": "^4.2.2",
+    "webpack-node-externals": "^1.7.2"
   }
 }
