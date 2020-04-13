@@ -4,7 +4,8 @@ const path = require('path')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-
+const nodeExternals = require('webpack-node-externals')
+const VueSSRServerPlugin = require('vue-server-renderer/server-plugin')
 function resolve (dir) {
   return path.join(__dirname, dir)
 }
@@ -30,8 +31,10 @@ module.exports = {
   publicPath: '/vueTest', // 基本路径
   outputDir: 'dist', // 输出文件目录
   assetsDir: 'static',
+  entry: './src/app.js',
   lintOnSave: process.env.NODE_ENV === 'development',
   productionSourceMap: false,
+  devtool: 'source-map',
   devServer: {
     port: port,
     open: true,
@@ -40,15 +43,25 @@ module.exports = {
       errors: true
     }
   },
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'bundle.js',
+    libraryTarget: 'commonjs2'
+  },
+  // https://webpack.js.org/configuration/externals/#function
+  // https://github.com/liady/webpack-node-externals
+  // 外置化应用程序依赖模块。可以使服务器构建速度更快，
+  // 并生成较小的 bundle 文件。
+  externals: nodeExternals({
+    // 不要外置化 webpack 需要处理的依赖模块。
+    // 你可以在这里添加更多的文件类型。例如，未处理 *.vue 原始文件，
+    // 你还应该将修改 `global`（例如 polyfill）的依赖模块列入白名单
+    whitelist: /\.css$/
+  }),
   configureWebpack: {
     // provide the app's title in webpack's name field, so that
     // it can be accessed in index.html to inject the correct title.
     name: name,
-    entry: './src/app.js',
-    output: {
-      path: path.resolve(__dirname, 'dist'),
-      filename: 'bundle.js'
-    },
     resolve: {
       alias: {
         '@': resolve('src')
@@ -167,6 +180,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './index.html'
     }),
-    new ExtractTextPlugin('styles.css')
+    new ExtractTextPlugin('styles.css'),
+    new VueSSRServerPlugin()
   ]
 }

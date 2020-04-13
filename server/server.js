@@ -44,6 +44,22 @@ backendRouter.get('/index', async (ctx, next) => {
     ctx.status = 500
     ctx.body = '服务器内部错误'
   }
+  // const stream = renderer.renderToStream(ctx)
+  // let html = ''
+  //
+  // stream.on('data', data => {
+  //   html += data.toString()
+  //   console.log('渲染中', data.toString(), html)
+  // })
+  //
+  // stream.on('end', () => {
+  //   console.log('渲染完成', html) // 渲染完成
+  // })
+  //
+  // stream.on('error', () => {
+  //   // handle error...
+  // })
+  // ctx.body = html
 })
 
 backendApp
