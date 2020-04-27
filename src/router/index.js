@@ -1,7 +1,10 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+// import Home from '../views/Home.vue'
 import DataConvert from '@/views/DataConvert/index'
+import ResetData from '@/views/Test/ResetData'
+import Index from '@/views/Test/index'
+import VueDraggable from '@/views/VueDraggable/index'
 
 Vue.use(VueRouter)
 
@@ -9,7 +12,7 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Home
+    component: Index
   },
   {
     path: '/about',
@@ -23,6 +26,21 @@ const routes = [
     path: '/dataConvert',
     name: 'DataConvert',
     component: DataConvert
+  },
+  {
+    path: '/resetData',
+    name: 'ResetData',
+    component: ResetData
+  },
+  {
+    path: '/test',
+    name: 'Index',
+    component: Index
+  },
+  {
+    path: '/vueDraggable',
+    name: 'VueDraggable',
+    component: VueDraggable
   }
 ]
 
