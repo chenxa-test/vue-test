@@ -6,7 +6,7 @@ export default {
    * @param filePath 文件路径，包括后缀名
    * @return {Promise<unknown>}
    */
-  getExcelDataByFilePath (filePath) {
+  getExcelDataByFilePath(filePath) {
     return new Promise((resolve, reject) => {
       // 读取二进制excel文件
       Axios.get(filePath, { responseType: 'arraybuffer' }).then(res => {
@@ -25,7 +25,7 @@ export default {
    * @param fileName 文件名，可以不包含后缀名
    * @return {Promise<unknown>}
    */
-  getExcelDataByFileName (fileName) {
+  getExcelDataByFileName(fileName) {
     return new Promise((resolve, reject) => {
       if (_.isEmpty(fileName)) reject(new Error('文件名是空的！'))
       let filePath = '/Excel/' + fileName
@@ -45,7 +45,7 @@ export default {
    * @param url 文件路径,包含后缀名
    * @return{number} 状态码
    */
-  getFileStatus (url) {
+  getFileStatus(url) {
     const xmlHttp = new XMLHttpRequest()
     xmlHttp.open('GET', url, false)
     xmlHttp.send()

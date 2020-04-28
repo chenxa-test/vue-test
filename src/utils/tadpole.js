@@ -24,7 +24,7 @@ import _isDate from 'lodash/isDate'
 import _isBoolean from 'lodash/isBoolean'
 
 class Model {
-  constructor (options = {}) {
+  constructor(options = {}) {
     this._attributes = {
       ...options
     }
@@ -36,7 +36,7 @@ class Model {
    * @param {*} data
    * @returns {Model}
    */
-  parse (data = {}) {
+  parse(data = {}) {
     _mapValues(this._attributes, (attribute, key) => {
       const path = attribute.property
       const distValue = _get(data, path)
@@ -64,7 +64,7 @@ class Model {
    * @param {*} data 需要转化的数据
    * @returns {Model|any}
    */
-  traverse (data = {}) {
+  traverse(data = {}) {
     if (!data) return this
     const object = Object.create(null)
     _mapValues(this._attributes, (attribute, key) => {
@@ -85,7 +85,7 @@ class Model {
  * @param {*} key
  * @param {*} value
  */
-  set (key, value) {
+  set(key, value) {
     this[key] = value
   }
 
@@ -94,7 +94,7 @@ class Model {
  * @param {*} key
  * @param {*} value
  */
-  get (key, value) {
+  get(key, value) {
     return this[key]
   }
 
@@ -103,7 +103,7 @@ class Model {
  * @param {*} value
  * @param {*} type
  */
-  getDefaultValue (value, type) {
+  getDefaultValue(value, type) {
     if (!value) {
       return this.setDefaultValue(type)
     } else {
@@ -115,7 +115,7 @@ class Model {
  * 设置默认值
  * @param {*} Type
  */
-  setDefaultValue (Type) {
+  setDefaultValue(Type) {
     let value = ''
     const type = new Type()
     if (_isNumber(type)) {

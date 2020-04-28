@@ -86,7 +86,7 @@ export const table = {
   tableTools: tools,
   tableData: {
     isHighlightCurrentRow: true,
-    isShowSelection: false,
+    isShowSelection: true,
     isIndex: true,
     border: true,
     content: [

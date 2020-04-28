@@ -1,6 +1,6 @@
 import { isFunction } from './fns'
 
-export function matchesSelectorToParentElements (el, selector, baseNode) {
+export function matchesSelectorToParentElements(el, selector, baseNode) {
   let node = el
 
   const matchesSelectorFunc = [
@@ -22,7 +22,7 @@ export function matchesSelectorToParentElements (el, selector, baseNode) {
   return false
 }
 
-export function addEvent (el, event, handler) {
+export function addEvent(el, event, handler) {
   if (!el) {
     return
   }
@@ -35,7 +35,7 @@ export function addEvent (el, event, handler) {
   }
 }
 
-export function removeEvent (el, event, handler) {
+export function removeEvent(el, event, handler) {
   if (!el) {
     return
   }

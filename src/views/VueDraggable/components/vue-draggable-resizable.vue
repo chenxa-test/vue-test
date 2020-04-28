@@ -19,10 +19,10 @@
       @mousedown.stop.prevent="handleDown(handle, $event)"
       @touchstart.stop.prevent="handleTouchDown(handle, $event)"
     >
-      <slot :name="handle"></slot>
+      <slot :name="handle" />
     </div>
     <div :style="styleTest">
-      <slot></slot>
+      <slot />
     </div>
   </div>
 </template>
@@ -61,7 +61,7 @@ let eventsFor = events.mouse
 
 export default {
   replace: true,
-  name: 'vue-draggable-resizable',
+  name: 'VueDraggableResizable',
   props: {
     className: {
       type: String,
@@ -209,7 +209,7 @@ export default {
     }
   },
 
-  data: function () {
+  data: function() {
     return {
       rawWidth: this.w,
       rawHeight: this.h,
@@ -241,8 +241,226 @@ export default {
       zIndex: this.z
     }
   },
+  computed: {
+    style() {
+      return {
+        position: 'absolute',
+        top: this.top + 'px',
+        left: this.left + 'px',
+        width: this.width + 'px',
+        height: this.height + 'px',
+        zIndex: this.zIndex,
+        ...(this.dragging && this.disableUserSelect ? userSelectNone : userSelectAuto)
+      }
+    },
+    styleTest() {
+      return {
+        width: this.width + 'px',
+        height: this.height + 'px',
+        border: 'red 1px solid'
+      }
+    },
+    actualHandles() {
+      if (!this.resizable) return []
 
-  created: function () {
+      return this.handles
+    },
+    width() {
+      return this.parentWidth - this.left - this.right
+    },
+    height() {
+      return this.parentHeight - this.top - this.bottom
+    },
+    resizingOnX() {
+      return (Boolean(this.handle) && (this.handle.includes('l') || this.handle.includes('r')))
+    },
+    resizingOnY() {
+      return (Boolean(this.handle) && (this.handle.includes('t') || this.handle.includes('b')))
+    },
+    isCornerHandle() {
+      return (Boolean(this.handle) && ['tl', 'tr', 'br', 'bl'].includes(this.handle))
+    }
+  },
+
+  watch: {
+    active(val) {
+      this.enabled = val
+
+      if (val) {
+        this.$emit('activated')
+      } else {
+        this.$emit('deactivated')
+      }
+    },
+    z(val) {
+      if (val >= 0 || val === 'auto') {
+        this.zIndex = val
+      }
+    },
+    rawLeft(newLeft) {
+      const bounds = this.bounds
+      const aspectFactor = this.aspectFactor
+      const lockAspectRatio = this.lockAspectRatio
+      const left = this.left
+      const top = this.top
+
+      if (bounds.minLeft !== null && newLeft < bounds.minLeft) {
+        newLeft = bounds.minLeft
+      } else if (bounds.maxLeft !== null && bounds.maxLeft < newLeft) {
+        newLeft = bounds.maxLeft
+      }
+
+      if (lockAspectRatio && this.resizingOnX) {
+        this.rawTop = top - (left - newLeft) / aspectFactor
+      }
+
+      this.left = newLeft
+    },
+    rawRight(newRight) {
+      const bounds = this.bounds
+      const aspectFactor = this.aspectFactor
+      const lockAspectRatio = this.lockAspectRatio
+      const right = this.right
+      const bottom = this.bottom
+
+      if (bounds.minRight !== null && newRight < bounds.minRight) {
+        newRight = bounds.minRight
+      } else if (bounds.maxRight !== null && bounds.maxRight < newRight) {
+        newRight = bounds.maxRight
+      }
+
+      if (lockAspectRatio && this.resizingOnX) {
+        this.rawBottom = bottom - (right - newRight) / aspectFactor
+      }
+
+      this.right = newRight
+    },
+    rawTop(newTop) {
+      const bounds = this.bounds
+      const aspectFactor = this.aspectFactor
+      const lockAspectRatio = this.lockAspectRatio
+      const left = this.left
+      const top = this.top
+
+      if (bounds.minTop !== null && newTop < bounds.minTop) {
+        newTop = bounds.minTop
+      } else if (bounds.maxTop !== null && bounds.maxTop < newTop) {
+        newTop = bounds.maxTop
+      }
+
+      if (lockAspectRatio && this.resizingOnY) {
+        this.rawLeft = left - (top - newTop) * aspectFactor
+      }
+
+      this.top = newTop
+    },
+    rawBottom(newBottom) {
+      const bounds = this.bounds
+      const aspectFactor = this.aspectFactor
+      const lockAspectRatio = this.lockAspectRatio
+      const right = this.right
+      const bottom = this.bottom
+
+      if (bounds.minBottom !== null && newBottom < bounds.minBottom) {
+        newBottom = bounds.minBottom
+      } else if (bounds.maxBottom !== null && bounds.maxBottom < newBottom) {
+        newBottom = bounds.maxBottom
+      }
+
+      if (lockAspectRatio && this.resizingOnY) {
+        this.rawRight = right - (bottom - newBottom) * aspectFactor
+      }
+
+      this.bottom = newBottom
+    },
+    x() {
+      if (this.resizing || this.dragging) {
+        return
+      }
+
+      if (this.parent) {
+        this.bounds = this.calcDragLimits()
+      }
+
+      const delta = this.x - this.left
+
+      if (delta % this.grid[0] === 0) {
+        this.rawLeft = this.x
+        this.rawRight = this.right - delta
+      }
+    },
+    y() {
+      if (this.resizing || this.dragging) {
+        return
+      }
+
+      if (this.parent) {
+        this.bounds = this.calcDragLimits()
+      }
+
+      const delta = this.y - this.top
+
+      if (delta % this.grid[1] === 0) {
+        this.rawTop = this.y
+        this.rawBottom = this.bottom - delta
+      }
+    },
+    lockAspectRatio(val) {
+      if (val) {
+        this.aspectFactor = this.width / this.height
+      } else {
+        this.aspectFactor = undefined
+      }
+    },
+    minWidth(val) {
+      if (val > 0 && val <= this.width) {
+        this.minW = val
+      }
+    },
+    minHeight(val) {
+      if (val > 0 && val <= this.height) {
+        this.minH = val
+      }
+    },
+    maxWidth(val) {
+      this.maxW = val
+    },
+    maxHeight(val) {
+      this.maxH = val
+    },
+    w() {
+      if (this.resizing || this.dragging) {
+        return
+      }
+
+      if (this.parent) {
+        this.bounds = this.calcResizeLimits()
+      }
+
+      const delta = this.width - this.w
+
+      if (delta % this.grid[0] === 0) {
+        this.rawRight = this.right + delta
+      }
+    },
+    h() {
+      if (this.resizing || this.dragging) {
+        return
+      }
+
+      if (this.parent) {
+        this.bounds = this.calcResizeLimits()
+      }
+
+      const delta = this.height - this.h
+
+      if (delta % this.grid[1] === 0) {
+        this.rawBottom = this.bottom + delta
+      }
+    }
+  },
+
+  created: function() {
     // eslint-disable-next-line
     if (this.maxWidth && this.minWidth > this.maxWidth) console.warn('[Vdr warn]: Invalid prop: minWidth cannot be greater than maxWidth')
     // eslint-disable-next-line
@@ -250,7 +468,7 @@ export default {
 
     this.resetBoundsAndMouseState()
   },
-  mounted: function () {
+  mounted: function() {
     if (!this.enableNativeDrag) {
       this.$el.ondragstart = () => false
     }
@@ -265,7 +483,7 @@ export default {
 
     addEvent(window, 'resize', this.checkParentSize)
   },
-  beforeDestroy: function () {
+  beforeDestroy: function() {
     removeEvent(document.documentElement, 'mousedown', this.deselect)
     removeEvent(document.documentElement, 'touchstart', this.handleUp)
     removeEvent(document.documentElement, 'mousemove', this.move)
@@ -277,7 +495,7 @@ export default {
   },
 
   methods: {
-    resetBoundsAndMouseState () {
+    resetBoundsAndMouseState() {
       this.mouseClickPosition = { mouseX: 0, mouseY: 0, x: 0, y: 0, w: 0, h: 0 }
 
       this.bounds = {
@@ -291,7 +509,7 @@ export default {
         maxBottom: null
       }
     },
-    checkParentSize () {
+    checkParentSize() {
       if (this.parent) {
         const [newParentWidth, newParentHeight] = this.getParentSize()
 
@@ -305,7 +523,7 @@ export default {
         this.parentHeight = newParentHeight
       }
     },
-    getParentSize () {
+    getParentSize() {
       if (this.parent) {
         const style = window.getComputedStyle(this.$el.parentNode, null)
 
@@ -317,12 +535,12 @@ export default {
 
       return [null, null]
     },
-    elementTouchDown (e) {
+    elementTouchDown(e) {
       eventsFor = events.touch
 
       this.elementDown(e)
     },
-    elementDown (e) {
+    elementDown(e) {
       const target = e.target || e.srcElement
 
       if (this.$el.contains(target)) {
@@ -364,7 +582,7 @@ export default {
         addEvent(document.documentElement, eventsFor.stop, this.handleUp)
       }
     },
-    calcDragLimits () {
+    calcDragLimits() {
       return {
         minLeft: (this.parentWidth + this.left) % this.grid[0],
         maxLeft: Math.floor((this.parentWidth - this.width - this.left) / this.grid[0]) * this.grid[0] + this.left,
@@ -376,7 +594,7 @@ export default {
         maxBottom: Math.floor((this.parentHeight - this.height - this.bottom) / this.grid[1]) * this.grid[1] + this.bottom
       }
     },
-    deselect (e) {
+    deselect(e) {
       const target = e.target || e.srcElement
       const regex = new RegExp(this.className + '-([trmbl]{2})', '')
 
@@ -393,12 +611,12 @@ export default {
 
       this.resetBoundsAndMouseState()
     },
-    handleTouchDown (handle, e) {
+    handleTouchDown(handle, e) {
       eventsFor = events.touch
 
       this.handleDown(handle, e)
     },
-    handleDown (handle, e) {
+    handleDown(handle, e) {
       if (this.onResizeStart && this.onResizeStart(handle, e) === false) {
         return
       }
@@ -427,7 +645,7 @@ export default {
       addEvent(document.documentElement, eventsFor.move, this.handleMove)
       addEvent(document.documentElement, eventsFor.stop, this.handleUp)
     },
-    calcResizeLimits () {
+    calcResizeLimits() {
       let minW = this.minW
       let minH = this.minH
       let maxW = this.maxW
@@ -529,14 +747,14 @@ export default {
 
       return limits
     },
-    move (e) {
+    move(e) {
       if (this.resizing) {
         this.handleMove(e)
       } else if (this.dragging) {
         this.elementMove(e)
       }
     },
-    elementMove (e) {
+    elementMove(e) {
       const axis = this.axis
       const mouseClickPosition = this.mouseClickPosition
 
@@ -552,7 +770,7 @@ export default {
 
       this.$emit('dragging', this.left, this.top)
     },
-    handleMove (e) {
+    handleMove(e) {
       const handle = this.handle
       const mouseClickPosition = this.mouseClickPosition
 
@@ -575,7 +793,7 @@ export default {
 
       this.$emit('resizing', this.left, this.top, this.width, this.height)
     },
-    handleUp (e) {
+    handleUp(e) {
       this.handle = null
 
       this.resetBoundsAndMouseState()
@@ -596,229 +814,11 @@ export default {
 
       removeEvent(document.documentElement, eventsFor.move, this.handleMove)
     },
-    snapToGrid (grid, pendingX, pendingY) {
+    snapToGrid(grid, pendingX, pendingY) {
       const x = Math.round((pendingX / this.scale) / grid[0]) * grid[0]
       const y = Math.round((pendingY / this.scale) / grid[1]) * grid[1]
 
       return [x, y]
-    }
-  },
-  computed: {
-    style () {
-      return {
-        position: 'absolute',
-        top: this.top + 'px',
-        left: this.left + 'px',
-        width: this.width + 'px',
-        height: this.height + 'px',
-        zIndex: this.zIndex,
-        ...(this.dragging && this.disableUserSelect ? userSelectNone : userSelectAuto)
-      }
-    },
-    styleTest () {
-      return {
-        width: this.width + 'px',
-        height: this.height + 'px',
-        border: 'red 1px solid'
-      }
-    },
-    actualHandles () {
-      if (!this.resizable) return []
-
-      return this.handles
-    },
-    width () {
-      return this.parentWidth - this.left - this.right
-    },
-    height () {
-      return this.parentHeight - this.top - this.bottom
-    },
-    resizingOnX () {
-      return (Boolean(this.handle) && (this.handle.includes('l') || this.handle.includes('r')))
-    },
-    resizingOnY () {
-      return (Boolean(this.handle) && (this.handle.includes('t') || this.handle.includes('b')))
-    },
-    isCornerHandle () {
-      return (Boolean(this.handle) && ['tl', 'tr', 'br', 'bl'].includes(this.handle))
-    }
-  },
-
-  watch: {
-    active (val) {
-      this.enabled = val
-
-      if (val) {
-        this.$emit('activated')
-      } else {
-        this.$emit('deactivated')
-      }
-    },
-    z (val) {
-      if (val >= 0 || val === 'auto') {
-        this.zIndex = val
-      }
-    },
-    rawLeft (newLeft) {
-      const bounds = this.bounds
-      const aspectFactor = this.aspectFactor
-      const lockAspectRatio = this.lockAspectRatio
-      const left = this.left
-      const top = this.top
-
-      if (bounds.minLeft !== null && newLeft < bounds.minLeft) {
-        newLeft = bounds.minLeft
-      } else if (bounds.maxLeft !== null && bounds.maxLeft < newLeft) {
-        newLeft = bounds.maxLeft
-      }
-
-      if (lockAspectRatio && this.resizingOnX) {
-        this.rawTop = top - (left - newLeft) / aspectFactor
-      }
-
-      this.left = newLeft
-    },
-    rawRight (newRight) {
-      const bounds = this.bounds
-      const aspectFactor = this.aspectFactor
-      const lockAspectRatio = this.lockAspectRatio
-      const right = this.right
-      const bottom = this.bottom
-
-      if (bounds.minRight !== null && newRight < bounds.minRight) {
-        newRight = bounds.minRight
-      } else if (bounds.maxRight !== null && bounds.maxRight < newRight) {
-        newRight = bounds.maxRight
-      }
-
-      if (lockAspectRatio && this.resizingOnX) {
-        this.rawBottom = bottom - (right - newRight) / aspectFactor
-      }
-
-      this.right = newRight
-    },
-    rawTop (newTop) {
-      const bounds = this.bounds
-      const aspectFactor = this.aspectFactor
-      const lockAspectRatio = this.lockAspectRatio
-      const left = this.left
-      const top = this.top
-
-      if (bounds.minTop !== null && newTop < bounds.minTop) {
-        newTop = bounds.minTop
-      } else if (bounds.maxTop !== null && bounds.maxTop < newTop) {
-        newTop = bounds.maxTop
-      }
-
-      if (lockAspectRatio && this.resizingOnY) {
-        this.rawLeft = left - (top - newTop) * aspectFactor
-      }
-
-      this.top = newTop
-    },
-    rawBottom (newBottom) {
-      const bounds = this.bounds
-      const aspectFactor = this.aspectFactor
-      const lockAspectRatio = this.lockAspectRatio
-      const right = this.right
-      const bottom = this.bottom
-
-      if (bounds.minBottom !== null && newBottom < bounds.minBottom) {
-        newBottom = bounds.minBottom
-      } else if (bounds.maxBottom !== null && bounds.maxBottom < newBottom) {
-        newBottom = bounds.maxBottom
-      }
-
-      if (lockAspectRatio && this.resizingOnY) {
-        this.rawRight = right - (bottom - newBottom) * aspectFactor
-      }
-
-      this.bottom = newBottom
-    },
-    x () {
-      if (this.resizing || this.dragging) {
-        return
-      }
-
-      if (this.parent) {
-        this.bounds = this.calcDragLimits()
-      }
-
-      const delta = this.x - this.left
-
-      if (delta % this.grid[0] === 0) {
-        this.rawLeft = this.x
-        this.rawRight = this.right - delta
-      }
-    },
-    y () {
-      if (this.resizing || this.dragging) {
-        return
-      }
-
-      if (this.parent) {
-        this.bounds = this.calcDragLimits()
-      }
-
-      const delta = this.y - this.top
-
-      if (delta % this.grid[1] === 0) {
-        this.rawTop = this.y
-        this.rawBottom = this.bottom - delta
-      }
-    },
-    lockAspectRatio (val) {
-      if (val) {
-        this.aspectFactor = this.width / this.height
-      } else {
-        this.aspectFactor = undefined
-      }
-    },
-    minWidth (val) {
-      if (val > 0 && val <= this.width) {
-        this.minW = val
-      }
-    },
-    minHeight (val) {
-      if (val > 0 && val <= this.height) {
-        this.minH = val
-      }
-    },
-    maxWidth (val) {
-      this.maxW = val
-    },
-    maxHeight (val) {
-      this.maxH = val
-    },
-    w () {
-      if (this.resizing || this.dragging) {
-        return
-      }
-
-      if (this.parent) {
-        this.bounds = this.calcResizeLimits()
-      }
-
-      const delta = this.width - this.w
-
-      if (delta % this.grid[0] === 0) {
-        this.rawRight = this.right + delta
-      }
-    },
-    h () {
-      if (this.resizing || this.dragging) {
-        return
-      }
-
-      if (this.parent) {
-        this.bounds = this.calcResizeLimits()
-      }
-
-      const delta = this.height - this.h
-
-      if (delta % this.grid[1] === 0) {
-        this.rawBottom = this.bottom + delta
-      }
     }
   }
 }

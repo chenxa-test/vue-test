@@ -1,10 +1,8 @@
 <template>
   <div>
     <multilevel-table
-      :table-data="tables.tableData"
-      :table-header="tables.tableHeader"
-      :table-tools="[]"
-    ></multilevel-table>
+      :tables="tables"
+    />
   </div>
 </template>
 
@@ -16,12 +14,12 @@ export default {
   components: {
     MultilevelTable
   },
-  data () {
+  data() {
     return {
       tables: { ...table }
     }
   },
-  mounted () {
+  mounted() {
   },
   methods: {
   }

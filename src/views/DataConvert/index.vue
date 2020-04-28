@@ -20,18 +20,18 @@
 import { form } from '@/views/DataConvert/index-model'
 import excelUtil from '@/utils/excel-util'
 export default {
-  name: 'index',
-  data () {
+  name: 'Index',
+  data() {
     return {
       form: {},
       excelData: []
     }
   },
-  created () {
+  created() {
     this.dataConvert()
   },
   methods: {
-    dataConvert () {
+    dataConvert() {
       const temp = {
         testName: 123,
         itemName2: 'test'
@@ -40,11 +40,11 @@ export default {
       console.log(this.form)
       console.log(form.traverse(this.form))
     },
-    nameChange (val) {
+    nameChange(val) {
       console.log('name:', val)
       console.log(form.traverse(this.form))
     },
-    getExcelData () {
+    getExcelData() {
       excelUtil.getExcelDataByFileName('form-model.xlsx').then(res => {
         this.excelData = res
       }).catch(e => {
