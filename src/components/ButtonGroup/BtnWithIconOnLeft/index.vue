@@ -145,7 +145,7 @@ export default {
      * @param index 点击的按钮的索引
      */
     onClick(index) {
-      const isExistId = this.options[index].hasOwnProperty('id')
+      const isExistId = Object.prototype.hasOwnProperty.call(this.options[index], 'id')
       const i = this.data.findIndex(item => {
         return isExistId ? item.id === this.options[index].id : JSON.stringify(item) === JSON.stringify(this.options[index])
       })
@@ -161,7 +161,7 @@ export default {
      * @return {boolean} true： 被选中了；false： 未选中
      */
     isChecked(index) {
-      const isExistId = this.options[index].hasOwnProperty('id')
+      const isExistId = Object.prototype.hasOwnProperty.call(this.options[index], 'id')
       const bo = this.data.some(item => {
         return isExistId ? item.id === this.options[index].id : JSON.stringify(item) === JSON.stringify(this.options[index])
       })
@@ -204,5 +204,14 @@ export default {
     display: inline-block;
     text-align: center;
     width: fit-content;
+  }
+  .more-popover.el-popover{
+    background-color: #0E1E5B;
+    border:solid 1px #0F77EF;
+    overflow-y: auto;
+    max-height: 400px;
+    .popper__arrow{
+      display: none;
+    }
   }
 </style>

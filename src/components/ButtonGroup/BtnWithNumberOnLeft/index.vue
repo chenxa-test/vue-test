@@ -184,7 +184,7 @@ export default {
      */
     onClick(row, column) {
       const object = Object.assign({}, this.dyadicArray[row - 1][column - 1])
-      const isExistId = object.hasOwnProperty('id')
+      const isExistId = Object.prototype.hasOwnProperty.call(object, 'id')
       const index = this.data.findIndex(item => {
         return isExistId ? item.id === object.id : JSON.stringify(item) === JSON.stringify(object)
       })
@@ -202,7 +202,7 @@ export default {
      */
     isChecked(row, column) {
       const object = this.dyadicArray[row - 1][column - 1]
-      const isExistId = object.hasOwnProperty('id')
+      const isExistId = Object.prototype.hasOwnProperty.call(object, 'id')
       const bo = this.data.some(item => {
         return isExistId ? item.id === object.id : JSON.stringify(item) === JSON.stringify(object)
       })
@@ -213,7 +213,7 @@ export default {
      * @param index 点击的按钮的索引
      */
     onClick2(index) {
-      const isExistId = this.options[index].hasOwnProperty('id')
+      const isExistId = Object.prototype.hasOwnProperty.call(this.options[index], 'id')
       const i = this.data.findIndex(item => {
         return isExistId ? item.id === this.options[index].id : JSON.stringify(item) === JSON.stringify(this.options[index])
       })
@@ -229,7 +229,7 @@ export default {
      * @return {boolean} true： 被选中了；false： 未选中
      */
     isChecked2(index) {
-      const isExistId = this.options[index].hasOwnProperty('id')
+      const isExistId = Object.prototype.hasOwnProperty.call(this.options[index], 'id')
       const bo = this.data.some(item => {
         return isExistId ? item.id === this.options[index].id : JSON.stringify(item) === JSON.stringify(this.options[index])
       })
@@ -269,6 +269,15 @@ export default {
       font-size: 14px;
       font-weight: 700;
       color: #506F90;
+    }
+  }
+  .more-popover.el-popover{
+    background-color: #0E1E5B;
+    border:solid 1px #0F77EF;
+    overflow-y: auto;
+    max-height: 400px;
+    .popper__arrow{
+      display: none;
     }
   }
 </style>
