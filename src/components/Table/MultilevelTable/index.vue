@@ -2,18 +2,18 @@
   <div>
     <el-table
       ref="table"
-      v-loading="tableLoading"
-      :border="tableData.border"
-      :data="tableData.content"
-      :max-height="tableData.maxHeight ? tableData.maxHeight : null"
-      :highlight-current-row="!!tableData.isHighlightCurrentRow"
-      :height="tableData.total ? null : (tableData.height ? tableData.height : null)"
+      v-loading="tables.tableLoading"
+      :border="tables.tableData.border"
+      :data="tables.tableData.content"
+      :max-height="tables.tableData.maxHeight"
+      :highlight-current-row="!!tables.tableData.isHighlightCurrentRow"
+      :height="tables.tableData.total ? null : tables.tableData.height"
       size="mini"
       fit
       row-key="id"
-      :tree-props="tableData.treeProps ||{children: 'children', hasChildren: 'hasChildren'}"
+      :tree-props="tables.tableData.treeProps ||{children: 'children', hasChildren: 'hasChildren'}"
       header-background-color="#f2f0fe"
-      :span-method="tableData.spanMethod?tableData.spanMethod:null"
+      :span-method="tables.tableData.spanMethod"
       @cell-click="cellClick"
       @row-dblclick="rowDbClick"
       @selection-change="handleSelectionChange"
@@ -23,17 +23,19 @@
       @sort-change="sortChange"
     >
       <el-table-column
-        v-if="tableData.isShowSelection && tableHeader.length > 0"
+        v-if="tables.tableData.isShowSelection && tables.tableHeader.length > 0"
         type="selection"
         width="55"
-      ></el-table-column>
+        align="center"
+      />
       <el-table-column
-        v-if="tableData.isIndex"
+        v-if="tables.tableData.isIndex"
         type="index"
         label="序号"
-        width="50"
-      ></el-table-column>
-      <template v-for="(item, index) in tableHeader">
+        width="55"
+        align="center"
+      />
+      <template v-for="(item, index) in tables.tableHeader">
         <el-table-column
           v-if="item.prop === 'operator'"
           :key="index"
@@ -85,12 +87,25 @@
         </el-table-column>
         <table-column
           v-else
-          :item="item"
           :key="index"
-          style="display: none; height: auto;width: auto"
+          :item="item"
         />
       </template>
     </el-table>
+    <div v-if="!tables.isListTable && tables.tableData.total > 0" class="pagination-wp">
+      <el-pagination
+        class="pagination-el"
+        :current-page="tables.tableData.currentPage"
+        :page-sizes="[10, 50, 100, 150]"
+        :page-size="tables.tableData.pageSize"
+        layout="total, sizes, prev, pager, next, jumper"
+        background
+        :pager-count="5"
+        :total="tables.tableData.total"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </div>
   </div>
 </template>
 
@@ -104,72 +119,57 @@ export default {
   },
   mixins: [tableMethods],
   props: {
+    tables: {
+      type: Object,
+      default: () => {
+        return {}
+      }
+    },
     btnLoading: {
-      type: Function, default () { }
+      type: Function, default() { }
     },
     tableTitle: {
       type: String,
       default: '查询结果'
-    },
-    tableTools: {
-      type: Array,
-      default: function () {
-        return [
-          {
-            name: 'createDialog',
-            icon: 'el-icon-circle-plus',
-            displayName: '新增'
-          },
-          {
-            name: 'editorDialog',
-            icon: 'el-icon-edit',
-            displayName: '编辑'
-          },
-          {
-            name: 'delete',
-            icon: 'el-icon-remove',
-            displayName: '删除'
-          },
-          {
-            name: 'batchDelete',
-            icon: 'el-icon-delete',
-            displayName: '批量删除'
-          },
-          {
-            name: 'import',
-            icon: 'el-icon-upload',
-            displayName: '导入'
-          },
-          {
-            name: 'export',
-            icon: 'el-icon-download',
-            displayName: '导出'
-          },
-          {
-            name: 'templateDownload',
-            icon: 'el-icon-document',
-            displayName: '模板下载'
-          }
-        ]
-      }
-    },
-    tableHeader: {
-      type: Array,
-      default: function () {
-        return []
-      }
-    },
-    tableData: {
-      type: Object,
-      default: () => {
-        return { }
-      }
-    },
-    tableLoading: {
-      type: Boolean,
-      default: false,
-      require: true
     }
+  },
+  data() {
+    return {
+      selectionItems: [],
+      tools: this.$lodash.cloneDeep(this.tables.tableTools || [])
+    }
+  },
+  watch: {
+    selectionItems: {
+      handler(newValue, oldValue) {
+        // todo: 优化一下
+        if (this.$lodash.isEmpty(newValue)) {
+          this.tools = this.tools.map(n => {
+            if (n.name === 'delete' || n.name === 'batchDelete' || n.name === 'editorDialog' || n.name === 'batchExport') {
+              n.disabled = true
+            }
+            return n
+          })
+        } else {
+          this.tools = this.tools.map(n => {
+            if (n.name === 'delete' || n.name === 'batchDelete' || n.name === 'batchExport') {
+              n.disabled = false
+            }
+            if (newValue.length === 1 && n.name === 'editorDialog') {
+              n.disabled = false
+            }
+            if (newValue.length !== 1 && n.name === 'editorDialog') {
+              n.disabled = true
+            }
+            return n
+          })
+        }
+      },
+      immediate: true
+    }
+  },
+  created() {
+    this.query(this.tables.queryDefaultParams)
   }
 }
 </script>

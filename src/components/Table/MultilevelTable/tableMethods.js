@@ -1,3 +1,5 @@
+import request from '@/utils/request'
+
 export default {
   methods: {
     cellClick: function(row, column) {
@@ -28,8 +30,8 @@ export default {
       } else if (data.order === 'descending') {
         sort = '-' + data.prop
       }
-      this.$set(this.tableData, 'sortProp', sort)
-      this.tableData.currentPage = 1
+      this.$set(this.tables.tableData, 'sortProp', sort)
+      this.tables.tableData.currentPage = 1
       this.$emit('query')
     },
     ifShowAction(row, term) {
@@ -55,6 +57,47 @@ export default {
           return value[item]
         }
       }
+    },
+    handleSizeChange: function(val) {
+      this.tables.tableData.pageSize = val
+      this.tables.tableData.currentPage = 1
+      this.$emit('query')
+    },
+    handleCurrentChange: function(val) {
+      this.tables.tableData.currentPage = val
+      this.$emit('query')
+    },
+    query: function(params = {}) {
+      let _params = { page: this.tables.tableData.currentPage, limit: this.tables.tableData.pageSize, param: params }
+      if (this.tables.isListTable) {
+        _params = params
+      }
+      if (!this.tables.tableRemote || !this.tables.tableRemote.url) {
+        return
+      }
+      this.remote(_params).then(res => {
+        if (this.tables.isListTable) {
+          this.tables.tableData.content = res.data
+        } else {
+          this.tables.tableData.content = res.data.content
+          if (Object.prototype.hasOwnProperty.call(this.tables.tableData, 'total')) {
+            this.tables.tableData.total = parseInt(res.data.totalElements)
+          }
+          this.tables.tableLoading = false
+        }
+      }).catch(err => {
+        console.log(err)
+      })
+    },
+    remote: function(params) {
+      if (this.tables.tableRemote.params && JSON.stringify(this.tables.tableRemote.params) !== '{}') {
+        params = this.tables.tableRemote.params
+      }
+      return request({
+        url: this.tables.tableRemote.url,
+        method: this.tables.tableRemote.method,
+        data: params
+      })
     }
   }
 }
